@@ -1,14 +1,16 @@
 import { Container, Nav, NavDropdown, Navbar, Form } from "react-bootstrap";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { FaMicrochip, FaMobile } from "react-icons/fa"
+import { ThemeContext } from "../../../config/theme.context";
 
 
 const NavbarComponent = () => {
-  let [theme, setTheme] = useState('dark');
+  const { theme, toggleTheme } = useContext(ThemeContext);
 
-  const changeTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
+  const changeTheme = (e) => {
+    e.preventDefault();
+    toggleTheme(theme)
   }
   return (
     <>
@@ -26,7 +28,7 @@ const NavbarComponent = () => {
               <Nav.Link href="#link">shop</Nav.Link>
               <NavDropdown title="Category" id="basic-nav-dropdown">
                 <NavLink to="/category/electronics" className={"nav-link"}><FaMicrochip />Electronics</NavLink>
-                <NavLink to="/category/smartphones" className={"nav-link"}><FaMobile/>Smartphones</NavLink>
+                <NavLink to="/category/smartphones" className={"nav-link"}><FaMobile />Smartphones</NavLink>
               </NavDropdown>
             </Nav>
             <Nav>
@@ -37,8 +39,8 @@ const NavbarComponent = () => {
               </Form>
             </Nav>
             <Nav className="float-end">
-              <NavLink to="/login" className="nav-link">login</NavLink>
-              <NavLink to="/register" className={"nav-link"}>signup</NavLink>
+              <NavLink to="/login" className="nav-link">Login</NavLink>
+              <NavLink to="/register" className={"nav-link"}>SignUp</NavLink>
               <Nav.Link onClick={changeTheme}><i className="fa-solid fa-circle-half-stroke"></i></Nav.Link>
             </Nav>
           </Navbar.Collapse>

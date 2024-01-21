@@ -1,45 +1,81 @@
 import { Container, Row, Col, Form, FormGroup } from "react-bootstrap";
-import styled from "styled-components";
 import "./index.css"
 import { ButtonComponent } from "../../../../component/common/button/button.component";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { Title, Divider } from "../../../../component/common/heading/heading.component";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Yup from "yup"
+import authSvc from "../auth.service";
+import { toast } from "react-toastify";
+import { useEffect } from "react";
 
-const LoginTitle = styled.h1`
-    color: #001900;
-    text-align: center;
-`
 
-const Divider = styled.hr`
-    border-color: #001900;
-`
 const LoginPage = (props)=>{
+    const navigate = useNavigate();
+    const LoginSchema = Yup.object({
+        email: Yup.string().email().required(),
+        password: Yup.string().required()
+    })
+    const { register, handleSubmit,  formState: {errors}} = useForm({
+        resolver: yupResolver(LoginSchema)
+    });
+
+    const loginSubmit = async (data)=>{
+        try{
+            let response = await authSvc.loginUser(data);
+            const userDetail = response.result.userDetail;
+            console.log(userDetail);
+            localStorage.setItem("_user", JSON.stringify({
+                ...userDetail
+            }))
+            console.log(userDetail.name, userDetail.role);
+            toast.success(`${userDetail.name}!!!Welcome to ${userDetail.role} panel !!!`);
+            navigate('/'+userDetail.role);
+            
+        }
+        catch(except){
+            toast.error(except.message)
+        }
+    }
+
+    console.log(errors)
+    useEffect(()=>{
+        let token = localStorage.getItem('_au');
+        let user = JSON.parse(localStorage.getItem("_user"));
+        if(token && user){
+            toast.info("You are already loggedIn");
+            navigate('/'+user.role)
+        }
+    })
    
     return (<>
         <Container className="login-wrapper my-5">
             <Row>
                 <Col sm={12} md={{offset: 3, span: 6}}> 
-                    <LoginTitle>Login Page</LoginTitle>
+                    <Title>Login Page</Title>
                 </Col>
             </Row>
             <Divider/>
             <Col sm={12} md={{offset:3, span: 6}}>
-                <Form>
+                <Form onSubmit={handleSubmit(loginSubmit)}>
                     <FormGroup className="row mb-3">
-                        <Form.Label className="col-sm-3">Username</Form.Label>
+                        <Form.Label className="col-sm-3">Email</Form.Label>
                         <Col sm={9}>
-                            <Form.Control type="email" size="sm" required placeholder="Enter your username"/>
-                            <span className="text-danger"><em></em></span>
+                            <Form.Control type="email" size="sm" {...register("email", {required: true})} placeholder="Enter your username"/>
+                            <span className="text-danger"><em>{errors?.email?.message}</em></span>
                         </Col>
                     </FormGroup>
                     <FormGroup className="row mb-3">
                         <Form.Label className="col-sm-3">Password</Form.Label>
                         <Col sm={9}>
-                            <Form.Control type="password" size="sm" required placeholder="Enter your password"/>
-                            <span className="text-danger"><em></em></span>
+                            <Form.Control type="password" size="sm" {...register("password", {required: true})} placeholder="Enter your password"/>
+                            <span className="text-danger"><em>{ errors?.password?.message}</em></span>
                         </Col>
                     </FormGroup>
                     <FormGroup>
-                    <Col sm={{offset:3, span: 9}} className="mb-3"> 
-                            Or &nbsp; <a href="">Forget password? </a>
+                        <Col sm={{offset:3, span: 9}} className="mb-3"> 
+                            Or &nbsp; <NavLink to="/forget-password">Forget password? </NavLink>
                         </Col>
                     </FormGroup>
                     <FormGroup className="row mb-3">
@@ -50,7 +86,7 @@ const LoginPage = (props)=>{
                     </FormGroup>
                     <FormGroup>
                         <Col>
-                            Or <a href="">No account?</a>
+                            Or <NavLink to="/register">No account?</NavLink>
                         </Col>
                     </FormGroup>
                 </Form>
